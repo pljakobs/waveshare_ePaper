@@ -30,22 +30,16 @@
 Epd::~Epd() {
 };
 
-Epd::Epd() {
-    reset_pin = RST_PIN;
-    dc_pin = DC_PIN;
-    cs_pin = CS_PIN;
-    busy_pin = BUSY_PIN;
-    width = EPD_WIDTH;
-    height = EPD_HEIGHT;
-};
-
-Epd::Epd(int16_t w, int16_t h,uint8_t RST_PIN, uint8_t CS_PIN, uint8_t DC_PIN, uint8_t BUSY_PIN){
+Epd::Epd(int8_t cs, int8_t dc, int8_t mosi, int8_t sclk, int8_t rst, int8_t miso, int8_t busy){
 	rest_pin=RST_PIN;
 	dc_pin=DC_PIN;
 	cs_pin=CS_PIN;
 	busy_pin=BUSY_PIN;
 	width=w;
 	height=h;
+}
+Epd::Epd(int8_t cs, int8_t dc, int8_t rst): Adafruit_GFX(ILI9341_TFTWIDTH, ILI9341_TFTHEIGHT){
+
 }
 
 int Epd::Init(const unsigned char* lut) {
@@ -77,30 +71,7 @@ int Epd::Init(const unsigned char* lut) {
     return 0;
 }
 
-/**
- *  @brief: basic function for sending commands
- */
-void Epd::SendCommand(unsigned char command) {
-    DigitalWrite(dc_pin, LOW);
-    SpiTransfer(command);
-}
 
-/**
- *  @brief: basic function for sending data
- */
-void Epd::SendData(unsigned char data) {
-    DigitalWrite(dc_pin, HIGH);
-    SpiTransfer(data);
-}
-
-/**
- *  @brief: Wait until the busy_pin goes LOW
- */
-void Epd::WaitUntilIdle(void) {
-    while(DigitalRead(busy_pin) == HIGH) {      //LOW: idle, HIGH: busy
-        DelayMs(100);
-    }      
-}
 
 /**
  *  @brief: module reset.
@@ -108,10 +79,10 @@ void Epd::WaitUntilIdle(void) {
  *          see Epd::Sleep();
  */
 void Epd::Reset(void) {
-    DigitalWrite(reset_pin, LOW);                //module reset    
+    DigitalWrite(reset_pin, LOW);                //module reset
     DelayMs(200);
     DigitalWrite(reset_pin, HIGH);
-    DelayMs(200);    
+    DelayMs(200);
 }
 
 /**
@@ -175,7 +146,7 @@ void Epd::SetFrameMemory(
  *  @brief: put an image buffer to the frame memory.
  *          this won't update the display.
  *
- *          Question: When do you use this function instead of 
+ *          Question: When do you use this function instead of
  *          void SetFrameMemory(
  *              const unsigned char* image_buffer,
  *              int x,
@@ -185,7 +156,7 @@ void Epd::SetFrameMemory(
  *          );
  *          Answer: SetFrameMemory with parameters only reads image data
  *          from the RAM but not from the flash in AVR chips (for AVR chips,
- *          you have to use the function pgm_read_byte to read buffers 
+ *          you have to use the function pgm_read_byte to read buffers
  *          from the flash).
  */
 void Epd::SetFrameMemory(const unsigned char* image_buffer) {
@@ -216,7 +187,7 @@ void Epd::ClearFrameMemory(unsigned char color) {
  *  @brief: update the display
  *          there are 2 memory areas embedded in the e-paper display
  *          but once this function is called,
- *          the the next action of SetFrameMemory or ClearFrame will 
+ *          the the next action of SetFrameMemory or ClearFrame will
  *          set the other memory area.
  */
 void Epd::DisplayFrame(void) {
@@ -256,9 +227,9 @@ void Epd::SetMemoryPointer(int x, int y) {
 }
 
 /**
- *  @brief: After this command is transmitted, the chip would enter the 
- *          deep-sleep mode to save power. 
- *          The deep sleep mode would return to standby by hardware reset. 
+ *  @brief: After this command is transmitted, the chip would enter the
+ *          deep-sleep mode to save power.
+ *          The deep sleep mode would return to standby by hardware reset.
  *          You can use Epd::Init() to awaken
  */
 void Epd::Sleep() {
@@ -268,21 +239,19 @@ void Epd::Sleep() {
 
 const unsigned char lut_full_update[] =
 {
-    0x02, 0x02, 0x01, 0x11, 0x12, 0x12, 0x22, 0x22, 
-    0x66, 0x69, 0x69, 0x59, 0x58, 0x99, 0x99, 0x88, 
-    0x00, 0x00, 0x00, 0x00, 0xF8, 0xB4, 0x13, 0x51, 
+    0x02, 0x02, 0x01, 0x11, 0x12, 0x12, 0x22, 0x22,
+    0x66, 0x69, 0x69, 0x59, 0x58, 0x99, 0x99, 0x88,
+    0x00, 0x00, 0x00, 0x00, 0xF8, 0xB4, 0x13, 0x51,
     0x35, 0x51, 0x51, 0x19, 0x01, 0x00
 };
 
 const unsigned char lut_partial_update[] =
 {
-    0x10, 0x18, 0x18, 0x08, 0x18, 0x18, 0x08, 0x00, 
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-    0x00, 0x00, 0x00, 0x00, 0x13, 0x14, 0x44, 0x12, 
+    0x10, 0x18, 0x18, 0x08, 0x18, 0x18, 0x08, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x13, 0x14, 0x44, 0x12,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
 
 /* END OF FILE */
-
-

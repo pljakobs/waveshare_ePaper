@@ -30,22 +30,43 @@
 
 #include <arduino.h>
 
-// Pin definition
-#define RST_PIN         8
-#define DC_PIN          9
-#define CS_PIN          10
-#define BUSY_PIN        7
 
 class EpdIf {
 public:
-    EpdIf(void);
+    //EpdIf(void);
+    EpdIf(int8_t cs, int8_t dc, int8_t mosi, int8_t sclk, int8_t rst, int8_t miso, int8_t busy);
+    EpdIf(int8_t cs, int8_t dc, int8_t rst);
     ~EpdIf(void);
 
     static int  IfInit(void);
-    static void DigitalWrite(int pin, int value); 
+    static void DigitalWrite(int pin, int value);
     static int  DigitalRead(int pin);
     static void DelayMs(unsigned int delaytime);
     static void SpiTransfer(unsigned char data);
+    static void writecommand(unsigned char command);
+
+  protected:
+    int8_t _busy;
+    boolean  hwSPI;
+  #if defined (__AVR__) || defined(TEENSYDUINO)
+    uint8_t mySPCR;
+    volatile uint8_t *mosiport, *clkport, *dcport, *rsport, *csport;
+    int8_t  _cs, _dc, _rst, _mosi, _miso, _sclk;
+    uint8_t  mosipinmask, clkpinmask, cspinmask, dcpinmask;
+  ////This def is for the Arduino.ORG M0!!!
+  //#elif defined(ARDUINO_SAM_ZERO)
+  //    volatile PORT_OUT_Type *mosiport, *clkport, *dcport, *rsport, *csport;
+  //    int32_t  _cs, _dc, _rst, _mosi, _miso, _sclk;
+  //    PORT_OUT_Type  mosipinmask, clkpinmask, cspinmask, dcpinmask;
+  #elif defined (__arm__)
+      volatile RwReg *mosiport, *clkport, *dcport, *rsport, *csport;
+      int32_t  _cs, _dc, _rst, _mosi, _miso, _sclk;
+      uint32_t  mosipinmask, clkpinmask, cspinmask, dcpinmask;
+  #elif defined (ESP8266)
+      int32_t  _cs, _dc, _rst, _mosi, _miso, _sclk;
+  #else
+      int8_t  _cs, _dc, _rst, _mosi, _miso, _sclk;
+  #endif
 };
 
 #endif
